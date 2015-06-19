@@ -1,6 +1,3 @@
-//TESTING GIT
-//Jorge Test
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
@@ -20,54 +17,87 @@ public class Generator {
 	public static void main(String[] args) throws BiffException, IOException, RowsExceededException, WriteException {
 		
 		int selection = 99;
+		int size;
+		ArrayList<Distribution> distributions = new ArrayList<Distribution>();
 		Scanner userInput = new Scanner(System.in);
+		System.out.println("Enter size: ");
+		size = userInput.nextInt();
 		while (selection != 0)
 		{
-			System.out.println("Enter an Input:\n1. Single Binary Distribution\n2. Simple Correlation (Binary values)\n0. Exit");
+			System.out.println("Enter an Input:\n1. New Normal Distribution\n2. Simple Correlation (Binary values)\n0. Exit");
 			selection = userInput.nextInt();
 			switch (selection){
 				case 1:
 				{
-					System.out.println("Enter the number of values, the mean, and the Standard deviation.\n");
-					int Size = userInput.nextInt();
+					System.out.println("Enter the name, mean, and the Standard deviation.\n");
+					String Name = userInput.nextLine();
 					double Mean = userInput.nextDouble();
 					double StandardDev = userInput.nextDouble();
-					ArrayList<Double> bin = new ArrayList<Double>(); 
-					bin = binaryDistribution(Size, Mean, StandardDev);
+					Distribution bin = newBinaryDistribution(size, Name, Mean, StandardDev);
+					//bin = binaryDistribution(Size, Mean, StandardDev);
 					WritableWorkbook workbook = Workbook.createWorkbook(new File("BinaryDistribution.xls"));
 					WritableSheet sheet = workbook.createSheet("Binary Distribution", 0);
-					int j = 0;
-					for(double i : bin)
+					//int j = 0;
+					for (int i = 0; i < size; i ++)
 					{
-						Number number = new Number(0, j, i); 
+						double value = bin.getData(i);
+						Number number = new Number(0,i,value);
+						sheet.addCell(number);
+					}
+					/*
+					for(Data d : bin.getValues())
+					{
+						Number number = new Number(0, j, d.value); 
 						sheet.addCell(number);
 						j++;
 					}
+					*/
 					workbook.write(); 
 					workbook.close();
+					distributions.add(bin);
 					break;
 				}
 				
 				case 2:
 				{
-					System.out.println("Fist populate Binary Distribution. Enter number of values, mean, and Standard Deviation");
+					System.out.println("Choose a distribution");
+					int i = 0;
+					for (Distribution d : distributions)
+					{
+						System.out.println(i+1 + ". " + d.getName());
+						i++;
+					}
+					int sel = userInput.nextInt();
+					Distribution base = distributions.get(sel-1);
+					/*
+					System.out.println("First populate Binary Distribution. Enter number of values, mean, and Standard Deviation");
 					int Size = userInput.nextInt();
 					double Mean = userInput.nextDouble();
 					double StandardDev = userInput.nextDouble();
 					ArrayList<Double> bin = new ArrayList<Double>(); 
 					bin = binaryDistribution(Size, Mean, StandardDev);
 					Collections.sort(bin);
-					
-					System.out.println("Now enter the top percentage, the correlation percentage, and the normal percentage");
+					*/
+					System.out.println("Now enter the name, top percentage, the correlation percentage, and the normal percentage");
+					String name = userInput.nextLine();
 					double topPercent = userInput.nextDouble();
 					double corPercent = userInput.nextDouble();
 					double norPercent = userInput.nextDouble();
 					
-					ArrayList<Integer> corList = TopPercentBinaryCorrelation(topPercent, corPercent, norPercent, bin);
+					Distribution corList = TopPercentBinaryCorrelation(name, topPercent, corPercent, norPercent, base);
 					
 					WritableWorkbook workbook = Workbook.createWorkbook(new File("SimpleBinaryCorrelation.xls"));
 					WritableSheet sheet = workbook.createSheet("Correlation", 0);
-					int j = 0;
+					for (int j = 0; j < size; j++)
+					{
+						double baseVal = base.getData(j);
+						double corVal = corList.getData(j);
+						Number number1 = new Number(0, j, baseVal);
+						Number number2 = new Number(1, j, corVal);
+						sheet.addCell(number1);
+						sheet.addCell(number2);
+					}
+					/*
 					for(double i : bin)
 					{
 						Number number = new Number(0, j, i); 
@@ -76,6 +106,7 @@ public class Generator {
 						sheet.addCell(number2);
 						j++;
 					}
+					*/
 					workbook.write(); 
 					workbook.close();
 					break;
@@ -86,44 +117,46 @@ public class Generator {
 	}
 	
 	
-	 private static ArrayList<Double> binaryDistribution(int size, double mean, double sd)
+	 private static Distribution newBinaryDistribution(int size, String name, double mean, double sd)
 	{
-		ArrayList<Double> retList = new ArrayList<Double>();
+		Distribution retVal = new Distribution(name, "Normal", size, mean, sd);
+		//ArrayList<Double> retList = new ArrayList<Double>();
 		Random generator = new Random();
 		for(int i = 0; i < size; i++)
 		{
-			retList.add(generator.nextGaussian()*sd+mean);
+			retVal.addData(i, (generator.nextGaussian()*sd+mean));
 		}
 		
-		return retList;
+		return retVal;
 	}
 
-	 private static ArrayList<Integer> TopPercentBinaryCorrelation(double topPercent, double corPercent, double normPercent, ArrayList<Double> inData)
+	 private static Distribution TopPercentBinaryCorrelation(String name, double topPercent, double corPercent, double normPercent, Distribution inData)
 	 {
-		 ArrayList<Integer> retList = new ArrayList<Integer>();
-		 Collections.sort(inData);
-		 int topN = (int) (inData.size() * topPercent);
+		 Distribution retVal = new Distribution(name, "BCor", inData.getSize(), topPercent, corPercent, normPercent);
+		 //ArrayList<Integer> retList = new ArrayList<Integer>();
+		 inData.sort();
+		 int topN = (int) (inData.getSize() * topPercent);
 		 
 		 int i = 0;
 		 Random generator = new Random();
-		 for (double d : inData)
+		 for (Data d : inData.getValues())
 		 {
-			 if (i < inData.size() - topN)
+			 if (i < inData.getSize() - topN)
 			 {
 				 if (generator.nextDouble()*1 <= normPercent)
-					 retList.add(1);
-				 else retList.add(0);
+					 retVal.addData(d.ID, 1);
+				 else retVal.addData(d.ID, 0);
 			 }
 			 else
 			 {
 				 if (generator.nextDouble()*1 <= corPercent)
-					 retList.add(1);
-				 else retList.add(0);
+					 retVal.addData(d.ID, 1);
+				 else retVal.addData(d.ID, 0);
 			 }
 			 i++;
 		 }
 		 
 		 
-		 return retList;
+		 return retVal;
 	 }
 }

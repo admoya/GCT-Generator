@@ -24,7 +24,7 @@ public class Generator {
 		size = userInput.nextInt();
 		while (selection != 0)
 		{
-			System.out.println("Enter an Input:\n1. New Normal Distribution\n2. Simple Correlation (Binary values)\n3. Simple Correlation (Numerical Values)\n0. Exit");
+			System.out.println("Enter an Input:\n1. New Normal Distribution\n2. New Bounded Distribution\n3. Simple Correlation (Binary values)\n4. Simple Correlation (Numerical Values)\n0. Exit");
 			selection = userInput.nextInt();
 			switch (selection){
 				case 1:
@@ -59,6 +59,40 @@ public class Generator {
 				}
 				
 				case 2:
+				{
+					System.out.println("Enter the name, mean, Standard deviation, Minimum, and Maximum.\n");
+					String Name = userInput.next();
+					double Mean = userInput.nextDouble();
+					double StandardDev = userInput.nextDouble();
+					double min = userInput.nextDouble();
+					double max = userInput.nextDouble();
+					Distribution bin = newBoundedDistribution(size, Name, Mean, StandardDev, min, max);
+					//bin = binaryDistribution(Size, Mean, StandardDev);
+					WritableWorkbook workbook = Workbook.createWorkbook(new File("BoundedDistribution.xls"));
+					WritableSheet sheet = workbook.createSheet("Bounded Distribution", 0);
+					//int j = 0;
+					for (int i = 0; i < size; i ++)
+					{
+						double value = bin.getData(i);
+						Number number = new Number(0,i,value);
+						sheet.addCell(number);
+					}
+					/*
+					for(Data d : bin.getValues())
+					{
+						Number number = new Number(0, j, d.value); 
+						sheet.addCell(number);
+						j++;
+					}
+					*/
+					workbook.write(); 
+					workbook.close();
+					distributions.add(bin);
+					break;
+				}
+				
+				
+				case 3:
 				{
 					System.out.println("Choose a distribution");
 					int i = 0;
@@ -113,7 +147,7 @@ public class Generator {
 					break;
 				}
 				
-				case 3:
+				case 4:
 				{
 					System.out.println("Choose a distribution");
 					int i = 0;
@@ -233,6 +267,18 @@ public class Generator {
 		 			return retVal;
 				}
 
+	 private static Distribution newBoundedDistribution(int size, String name, double mean, double sd, double min, double max)
+		{
+			Distribution retVal = new Distribution(name, "Bounded", size, mean, sd);
+			//ArrayList<Double> retList = new ArrayList<Double>();
+			Random generator = new Random();
+			for(int i = 0; i < size; i++)
+			{
+				retVal.addData(i, Math.max(min, Math.min(max, (generator.nextGaussian()*sd+mean))));
+			}
+			
+			return retVal;
+		}
 }
 
 	

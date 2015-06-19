@@ -4,7 +4,7 @@ import java.util.Collections;
 public class Distribution 
 {
 	private int size;
-	private double mean, SD, topPercent, corPercent, norPercent, norMean, norSD, topMean, topSD;
+	private double mean, SD, topPercent, corPercent, norPercent, norMean, norSD, topMean, topSD, min, max;
 	private String type, name;
 	private ArrayList<Data> values = new ArrayList<Data>();
 	public Distribution (String name, String type, int size, double mean, double SD)//Normal Distributions
@@ -14,6 +14,26 @@ public class Distribution
 		this.size = size;
 		this.mean = mean;
 		this.SD = SD;
+		topPercent = 0;
+		corPercent = 0;
+		norPercent = 0;
+		norMean = 0;
+		norSD = 0;
+		topMean = 0;
+		topSD = 0;
+		min = 0;
+		max = 0;
+	}
+	
+	public Distribution (String name, String type, int size, double mean, double SD, double min, double max)//Bounded Distributions
+	{
+		this.name = name;
+		this.type = type;
+		this.size = size;
+		this.mean = mean;
+		this.SD = SD;
+		this.min = min;
+		this.max = max;
 		topPercent = 0;
 		corPercent = 0;
 		norPercent = 0;
@@ -37,6 +57,8 @@ public class Distribution
 		norSD = 0;
 		topMean = 0;
 		topSD = 0;
+		min = 0;
+		max = 0;
 	}
 	
 	public Distribution (String name, String type, int size, double topPercent, double norMean, double norSD, double topMean, double topSD)//Numerical Correlation
@@ -53,6 +75,8 @@ public class Distribution
 		this.norSD = norSD;
 		this.topMean = topMean;
 		this.topSD = topSD;
+		min = 0;
+		max = 0;
 	}
 	
 	public double getTopPercent() {

@@ -274,7 +274,12 @@ public class Generator {
 			Random generator = new Random();
 			for(int i = 0; i < size; i++)
 			{
-				retVal.addData(i, Math.max(min, Math.min(max, (generator.nextGaussian()*sd+mean))));
+				double val = (generator.nextGaussian()*sd+mean);
+				while (val < min || val > max)
+				{
+					val = (generator.nextGaussian()*sd+mean);
+				}
+				retVal.addData(i,  val);
 			}
 			
 			return retVal;

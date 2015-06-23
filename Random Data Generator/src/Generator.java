@@ -24,7 +24,7 @@ public class Generator {
 		size = userInput.nextInt();
 		while (selection != 0)
 		{
-			System.out.println("Enter an Input:\n1. New Normal Distribution\n2. New Bounded Distribution\n3. Simple Correlation (Binary values)\n4. Simple Correlation (Numerical Values)\n0. Exit");
+			System.out.println("Enter an Input:\n1. New Normal Distribution\n2. New Bounded Distribution\n3. Simple Correlation (Binary values)\n4. Simple Correlation (Numerical Values)\n9. Print to Excel\n0. Exit");
 			selection = userInput.nextInt();
 			switch (selection){
 				case 1:
@@ -192,6 +192,25 @@ public class Generator {
 					workbook.write(); 
 					workbook.close();
 					distributions.add(corList);
+					break;
+				}
+				case 9:
+				{
+					int i = 0;
+					WritableWorkbook workbook = Workbook.createWorkbook(new File("RandomData.xls"));
+					WritableSheet sheet = workbook.createSheet("Sheet1", 0);
+					for (Distribution d : distributions)
+					{
+						for (int j = 0; j<size; j++)
+						{
+							double val = d.getData(j);
+							Number number = new Number(i, j, val);
+							sheet.addCell(number);
+						}
+						i++;
+					}
+					workbook.write();
+					workbook.close();
 					break;
 				}
 			}

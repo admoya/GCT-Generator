@@ -3,12 +3,13 @@ import java.util.Collections;
 
 public class Distribution 
 {
-	private int size;
+	private int size, ID;
 	private double mean, SD, topPercent, corPercent, norPercent, norMean, norSD, topMean, topSD, min, max;
 	private String type, name;
 	private ArrayList<Data> values = new ArrayList<Data>();
-	public Distribution (String name, String type, int size, double mean, double SD)//Normal Distributions
+	public Distribution (int ID, String name, String type, int size, double mean, double SD)//Normal Distributions
 	{
+		this.ID = ID;
 		this.name = name;
 		this.type = type;
 		this.size = size;
@@ -25,8 +26,9 @@ public class Distribution
 		max = 0;
 	}
 	
-	public Distribution (String name, String type, int size, double mean, double SD, double min, double max)//Bounded Distributions
+	public Distribution (int ID, String name, String type, int size, double mean, double SD, double min, double max)//Bounded Distributions
 	{
+		this.ID = ID;
 		this.name = name;
 		this.type = type;
 		this.size = size;
@@ -43,8 +45,9 @@ public class Distribution
 		topSD = 0;
 	}
 	
-	public Distribution (String name, String type, int size, double topPercent, double corPercent, double norPercent)//Binary Correlation
+	public Distribution (int ID, String name, String type, int size, double topPercent, double corPercent, double norPercent)//Binary Correlation
 	{
+		this.ID = ID;
 		this.name = name;
 		this.type = type;
 		this.size = size;
@@ -61,8 +64,9 @@ public class Distribution
 		max = 0;
 	}
 	
-	public Distribution (String name, String type, int size, double topPercent, double norMean, double norSD, double topMean, double topSD)//Numerical Correlation
+	public Distribution (int ID, String name, String type, int size, double topPercent, double norMean, double norSD, double topMean, double topSD)//Numerical Correlation
 	{
+		this.ID = ID;
 		this.name = name;
 		this.type = type;
 		this.size = size;
@@ -79,6 +83,62 @@ public class Distribution
 		max = 0;
 	}
 	
+	public int getID() {
+		return ID;
+	}
+
+	public void setID(int iD) {
+		ID = iD;
+	}
+
+	public double getNorMean() {
+		return norMean;
+	}
+
+	public void setNorMean(double norMean) {
+		this.norMean = norMean;
+	}
+
+	public double getNorSD() {
+		return norSD;
+	}
+
+	public void setNorSD(double norSD) {
+		this.norSD = norSD;
+	}
+
+	public double getTopMean() {
+		return topMean;
+	}
+
+	public void setTopMean(double topMean) {
+		this.topMean = topMean;
+	}
+
+	public double getTopSD() {
+		return topSD;
+	}
+
+	public void setTopSD(double topSD) {
+		this.topSD = topSD;
+	}
+
+	public double getMin() {
+		return min;
+	}
+
+	public void setMin(double min) {
+		this.min = min;
+	}
+
+	public double getMax() {
+		return max;
+	}
+
+	public void setMax(double max) {
+		this.max = max;
+	}
+
 	public double getTopPercent() {
 		return topPercent;
 	}

@@ -22,6 +22,7 @@ public class Generator {
 		Scanner userInput = new Scanner(System.in);
 		System.out.println("Enter size: ");
 		size = userInput.nextInt();
+		int[][] index = new int[100][100];
 		while (selection != 0)
 		{
 			System.out.println("Enter an Input:\n1. New Normal Distribution\n2. New Bounded Distribution\n3. Simple Correlation (Binary values)\n4. Simple Correlation (Numerical Values)\n9. Print to Excel\n0. Exit");
@@ -33,7 +34,17 @@ public class Generator {
 					String Name = userInput.next();
 					double Mean = userInput.nextDouble();
 					double StandardDev = userInput.nextDouble();
-					Distribution bin = newBinaryDistribution(size, Name, Mean, StandardDev);
+					int id = -1;
+					for (int i = 0; i < 100; i++)
+					{
+						if (index[0][i] == 0)
+						{
+							id = i+1;
+							index[0][i] = i+1;
+							break;
+						}
+					}
+					Distribution bin = newBinaryDistribution(id, size, Name, Mean, StandardDev);
 					//bin = binaryDistribution(Size, Mean, StandardDev);
 					WritableWorkbook workbook = Workbook.createWorkbook(new File("BinaryDistribution.xls"));
 					WritableSheet sheet = workbook.createSheet("Binary Distribution", 0);
@@ -66,7 +77,17 @@ public class Generator {
 					double StandardDev = userInput.nextDouble();
 					double min = userInput.nextDouble();
 					double max = userInput.nextDouble();
-					Distribution bin = newBoundedDistribution(size, Name, Mean, StandardDev, min, max);
+					int id=-1;
+					for (int i = 0; i < 100; i++)
+					{
+						if (index[0][i] == 0)
+						{
+							id = i+1;
+							index[0][i] = i+1;
+							break;
+						}
+					}
+					Distribution bin = newBoundedDistribution(id, size, Name, Mean, StandardDev, min, max);
 					//bin = binaryDistribution(Size, Mean, StandardDev);
 					WritableWorkbook workbook = Workbook.createWorkbook(new File("BoundedDistribution.xls"));
 					WritableSheet sheet = workbook.createSheet("Bounded Distribution", 0);
@@ -117,8 +138,27 @@ public class Generator {
 					double topPercent = userInput.nextDouble();
 					double corPercent = userInput.nextDouble();
 					double norPercent = userInput.nextDouble();
+					int corId = base.getID();
+					int id=-1;
+					for (int j = 0; j < 100; j++)
+					{
+						if (index[0][j] == 0)
+						{
+							id = j+1;
+							index[0][j] = j+1;
+							break;
+						}
+					}
+					Distribution corList = TopPercentBinaryCorrelation(id, name, topPercent, corPercent, norPercent, base);
 					
-					Distribution corList = TopPercentBinaryCorrelation(name, topPercent, corPercent, norPercent, base);
+					for(int j = 0; j <100; j++)
+					{
+						if(index[j][corId-1] == 0)
+						{
+							index[j][corId-1] = id;
+							break;
+						}
+					}
 					
 					WritableWorkbook workbook = Workbook.createWorkbook(new File("SimpleBinaryCorrelation.xls"));
 					WritableSheet sheet = workbook.createSheet("Correlation", 0);
@@ -165,8 +205,27 @@ public class Generator {
 					double topSD = userInput.nextDouble();
 					double norMean = userInput.nextDouble();
 					double norSD = userInput.nextDouble();
+					int corId = base.getID();
+					int id=-1;
+					for (int j = 0; j < 100; j++)
+					{
+						if (index[0][j] == 0)
+						{
+							id = j+1;
+							index[0][j] = j+1;
+							break;
+						}
+					}
 					
-					Distribution corList = TopPercentNumericalCorrelation(name, topPercent, topMean, topSD, norMean, norSD, base);
+					Distribution corList = TopPercentNumericalCorrelation(id, name, topPercent, topMean, topSD, norMean, norSD, base);
+					for(int j = 0; j <100; j++)
+					{
+						if(index[j][corId-1] == 0)
+						{
+							index[j][corId-1] = id;
+							break;
+						}
+					}
 					
 					WritableWorkbook workbook = Workbook.createWorkbook(new File("SimpleNumericalCorrelation.xls"));
 					WritableSheet sheet = workbook.createSheet("Correlation", 0);
@@ -219,9 +278,9 @@ public class Generator {
 	}
 	
 	
-	 private static Distribution newBinaryDistribution(int size, String name, double mean, double sd)
+	 private static Distribution newBinaryDistribution(int ID, int size, String name, double mean, double sd)
 	{
-		Distribution retVal = new Distribution(name, "Normal", size, mean, sd);
+		Distribution retVal = new Distribution(ID, name, "Normal", size, mean, sd);
 		//ArrayList<Double> retList = new ArrayList<Double>();
 		Random generator = new Random();
 		for(int i = 0; i < size; i++)
@@ -232,9 +291,9 @@ public class Generator {
 		return retVal;
 	}
 
-	 private static Distribution TopPercentBinaryCorrelation(String name, double topPercent, double corPercent, double normPercent, Distribution inData)
+	 private static Distribution TopPercentBinaryCorrelation(int ID, String name, double topPercent, double corPercent, double normPercent, Distribution inData)
 	 {
-		 Distribution retVal = new Distribution(name, "BCor", inData.getSize(), topPercent, corPercent, normPercent);
+		 Distribution retVal = new Distribution(ID, name, "BCor", inData.getSize(), topPercent, corPercent, normPercent);
 		 //ArrayList<Integer> retList = new ArrayList<Integer>();
 		 inData.sort();
 		 int topN = (int) (inData.getSize() * topPercent);
@@ -262,9 +321,9 @@ public class Generator {
 		 return retVal;
 	 }
 	 
-	 private static Distribution TopPercentNumericalCorrelation (String name, double topPercent, double topMean, double topSD, double norMean, double norSD, Distribution inData)
+	 private static Distribution TopPercentNumericalCorrelation (int ID, String name, double topPercent, double topMean, double topSD, double norMean, double norSD, Distribution inData)
 				{
-		 			Distribution retVal = new Distribution(name, "NumCor", inData.getSize(), topPercent, norMean, norSD, topMean, topSD);
+		 			Distribution retVal = new Distribution(ID, name, "NumCor", inData.getSize(), topPercent, norMean, norSD, topMean, topSD);
 		 			inData.sort();
 		 			int topN = (int) (inData.getSize() * topPercent);
 		 			int i = 0;
@@ -286,9 +345,9 @@ public class Generator {
 		 			return retVal;
 				}
 
-	 private static Distribution newBoundedDistribution(int size, String name, double mean, double sd, double min, double max)
+	 private static Distribution newBoundedDistribution(int ID, int size, String name, double mean, double sd, double min, double max)
 		{
-			Distribution retVal = new Distribution(name, "Bounded", size, mean, sd);
+			Distribution retVal = new Distribution(ID, name, "Bounded", size, mean, sd);
 			//ArrayList<Double> retList = new ArrayList<Double>();
 			Random generator = new Random();
 			for(int i = 0; i < size; i++)

@@ -25,7 +25,7 @@ public class Generator {
 		int[][] index = new int[100][100];
 		while (selection != 0)
 		{
-			System.out.println("Enter an Input:\n1. New Normal Distribution\n2. New Bounded Distribution\n3. Simple Correlation (Binary values)\n4. Simple Correlation (Numerical Values)\n9. Print to Excel\n0. Exit");
+			System.out.println("Enter an Input:\n1. New Normal Distribution\n2. New Bounded Distribution\n3. Simple Correlation (Binary values)\n4. Simple Correlation (Numerical Values)\n8. Show Distributions and Correlations\n9. Print to Excel\n0. Exit");
 			selection = userInput.nextInt();
 			switch (selection){
 				case 1:
@@ -253,6 +253,28 @@ public class Generator {
 					distributions.add(corList);
 					break;
 				}
+				
+				case 8:
+				{
+					for(int i = 0; i < 100; i++)
+					{
+						if (index[0][i] != 0)
+						{
+							System.out.println(i+1 + ". " + getDistFromID(index[0][i], distributions).getName());
+							for (int j = 1; j < 100; j++)
+							{
+								if (index [j][i] != 0)
+									System.out.println("--- " + getDistFromID(index[j][i], distributions).getName());
+								else break;
+							}
+							
+						}
+						else 
+							break;
+					}
+					System.out.println("\n");
+					break;
+				}
 				case 9:
 				{
 					int i = 0;
@@ -277,7 +299,13 @@ public class Generator {
 		userInput.close();
 	}
 	
-	
+	private static Distribution getDistFromID(int ID, ArrayList<Distribution> dists)
+	{
+		for (Distribution d : dists)
+			if (d.getID() == ID)
+				return d;
+		return null;
+	}
 	 private static Distribution newBinaryDistribution(int ID, int size, String name, double mean, double sd)
 	{
 		Distribution retVal = new Distribution(ID, name, "Normal", size, mean, sd);

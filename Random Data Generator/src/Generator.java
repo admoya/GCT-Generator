@@ -12,291 +12,130 @@ import jxl.write.biff.RowsExceededException;
 import jxl.*;
 import jxl.read.biff.BiffException;
 
+import java.sql.*;
 public class Generator {
 
-	public static void main(String[] args) throws BiffException, IOException, RowsExceededException, WriteException {
-		
-		int selection = 99;
-		int size;
+	public static void main(String[] args) throws BiffException, IOException, RowsExceededException, WriteException, SQLException {
 		ArrayList<Distribution> distributions = new ArrayList<Distribution>();
-		Scanner userInput = new Scanner(System.in);
-		System.out.println("Enter size: ");
-		size = userInput.nextInt();
-		int[][] index = new int[100][100];
-		while (selection != 0)
-		{
-			System.out.println("Enter an Input:\n1. New Normal Distribution\n2. New Bounded Distribution\n3. Simple Correlation (Binary values)\n4. Simple Correlation (Numerical Values)\n8. Show Distributions and Correlations\n9. Print to Excel\n0. Exit");
-			selection = userInput.nextInt();
-			switch (selection){
-				case 1:
-				{
-					System.out.println("Enter the name, mean, and the Standard deviation.\n");
-					String Name = userInput.next();
-					double Mean = userInput.nextDouble();
-					double StandardDev = userInput.nextDouble();
-					int id = -1;
-					for (int i = 0; i < 100; i++)
+		//Reading Header Table and saving parameters
+		 // JDBC driver name and database URL
+		   String JDBC_DRIVER = "com.mysql.jdbc.Driver";  
+		   String DB_URL = "jdbc:mysql://localhost/gct";
+		//  Database credentials
+		   String USER = "root";
+		   String PASS = "gerby1";
+		   
+		   Connection conn = null;
+		   Statement stmt = null;
+		   try{
+			      //STEP 2: Register JDBC driver
+			      Class.forName("com.mysql.jdbc.Driver");
+
+			      //STEP 3: Open a connection
+			      System.out.println("Connecting to database...");
+			      conn = DriverManager.getConnection(DB_URL,USER,PASS);
+			      
+			      //STEP 4: Execute a query
+			      System.out.println("Creating statement...");
+			      stmt = conn.createStatement();
+			      String sql;
+			      sql = "SELECT * FROM import_data_header";
+			      ResultSet rs = stmt.executeQuery(sql);
+
+			      //STEP 5: Extract data from result set
+			      while(rs.next()){
+			         //Retrieve by column name
+			         int id  = rs.getInt("Dist_ID");
+			         String name = rs.getString("Name");
+			         String distType = rs.getString("Dist_Type");
+			         int size = rs.getInt("Size");
+			         int corID = rs.getInt("Cor_ID");
+			         double mean = rs.getDouble("Mean");
+			         double sd = rs.getDouble("Std_Dev");
+			         double min = rs.getDouble("Min");
+			         double max = rs.getDouble("Max");
+			         double topPercent = rs.getDouble("Top_Percent");
+			         double corPercent = rs.getDouble("Cor_Percent");
+			         double normPercent = rs.getDouble("Norm_Percent");
+			         double topMean = rs.getDouble("Top_Mean");
+			         double topSD = rs.getDouble("Top_Std_Dev");
+			         double normMean = rs.getDouble("Norm_Mean");
+			         double normSD = rs.getDouble("Norm_Std_Dev");
+
+			         //Display values
+			         System.out.print("ID: " + id);
+			         System.out.print(", Name: " + name);
+			         System.out.print(", Type: " + distType);
+			         System.out.print(", Size: " + size);
+			         System.out.print(", CorID: " + corID);
+			         System.out.print(", Mean: " + mean);
+			         System.out.print(", SD: " + sd);
+			         System.out.print(", Min: " + min);
+			         System.out.print(", Max: " + max);
+			         System.out.print(", TopPercent: " + topPercent);
+			         System.out.print(", CorPercent: " + corPercent);
+			         System.out.print(", NormPercent: " + normPercent);
+			         System.out.print(", TopMean: " + topMean);
+			         System.out.print(", TopSD: " + topSD);
+			         System.out.print(", normMean: " + normMean);
+			         System.out.println(", normSD: " + normSD);
+			         
+			         switch(distType)
+			         {
+			         case ("Normal"):
+			        	 distributions.add(newBinaryDistribution(id, size, name, mean, sd));
+			         	break;
+			         case ("SBinCor"):
+			        	 distributions.add(TopPercentBinaryCorrelation(id, name, topPercent, corPercent, normPercent, getDistFromID(corID, distributions)));
+			         	break;
+			         case ("SNumCor"):
+			        	 distributions.add(TopPercentNumericalCorrelation(id, name, topPercent, topMean, topSD, normMean, normSD, getDistFromID(corID, distributions)));
+			         	break;
+			         case ("Bounded"):
+			        	 distributions.add(newBoundedDistribution(id, size, name, normMean, normSD, min, max));
+			         	break;
+			         }
+			      }
+			      //Populate detail table
+			      for (Distribution d : distributions)
 					{
-						if (index[0][i] == 0)
+						for(Data data : d.getValues())
 						{
-							id = i+1;
-							index[0][i] = i+1;
-							break;
+						String query = "Insert into import_data_detail (Dist_ID, Subset_ID, Value)" + " values (?, ?, ?)";
+					      PreparedStatement preparedStmt = conn.prepareStatement(query);
+					      preparedStmt.setInt(1, d.getID());
+					      preparedStmt.setInt(2, data.ID);
+					      preparedStmt.setDouble(3, data.value);
+					      preparedStmt.execute();
 						}
+					      
 					}
-					Distribution bin = newBinaryDistribution(id, size, Name, Mean, StandardDev);
-					//bin = binaryDistribution(Size, Mean, StandardDev);
-					WritableWorkbook workbook = Workbook.createWorkbook(new File("BinaryDistribution.xls"));
-					WritableSheet sheet = workbook.createSheet("Binary Distribution", 0);
-					//int j = 0;
-					for (int i = 0; i < size; i ++)
-					{
-						double value = bin.getData(i);
-						Number number = new Number(0,i,value);
-						sheet.addCell(number);
-					}
-					/*
-					for(Data d : bin.getValues())
-					{
-						Number number = new Number(0, j, d.value); 
-						sheet.addCell(number);
-						j++;
-					}
-					*/
-					workbook.write(); 
-					workbook.close();
-					distributions.add(bin);
-					break;
-				}
-				
-				case 2:
-				{
-					System.out.println("Enter the name, mean, Standard deviation, Minimum, and Maximum.\n");
-					String Name = userInput.next();
-					double Mean = userInput.nextDouble();
-					double StandardDev = userInput.nextDouble();
-					double min = userInput.nextDouble();
-					double max = userInput.nextDouble();
-					int id=-1;
-					for (int i = 0; i < 100; i++)
-					{
-						if (index[0][i] == 0)
-						{
-							id = i+1;
-							index[0][i] = i+1;
-							break;
-						}
-					}
-					Distribution bin = newBoundedDistribution(id, size, Name, Mean, StandardDev, min, max);
-					//bin = binaryDistribution(Size, Mean, StandardDev);
-					WritableWorkbook workbook = Workbook.createWorkbook(new File("BoundedDistribution.xls"));
-					WritableSheet sheet = workbook.createSheet("Bounded Distribution", 0);
-					//int j = 0;
-					for (int i = 0; i < size; i ++)
-					{
-						double value = bin.getData(i);
-						Number number = new Number(0,i,value);
-						sheet.addCell(number);
-					}
-					/*
-					for(Data d : bin.getValues())
-					{
-						Number number = new Number(0, j, d.value); 
-						sheet.addCell(number);
-						j++;
-					}
-					*/
-					workbook.write(); 
-					workbook.close();
-					distributions.add(bin);
-					break;
-				}
-				
-				
-				case 3:
-				{
-					System.out.println("Choose a distribution");
-					int i = 0;
-					for (Distribution d : distributions)
-					{
-						System.out.println(i+1 + ". " + d.getName());
-						i++;
-					}
-					int sel = userInput.nextInt();
-					Distribution base = distributions.get(sel-1);
-					/*
-					System.out.println("First populate Binary Distribution. Enter number of values, mean, and Standard Deviation");
-					int Size = userInput.nextInt();
-					double Mean = userInput.nextDouble();
-					double StandardDev = userInput.nextDouble();
-					ArrayList<Double> bin = new ArrayList<Double>(); 
-					bin = binaryDistribution(Size, Mean, StandardDev);
-					Collections.sort(bin);
-					*/
-					System.out.println("Now enter the name, top percentage, the correlation percentage, and the normal percentage");
-					String name = userInput.next();
-					double topPercent = userInput.nextDouble();
-					double corPercent = userInput.nextDouble();
-					double norPercent = userInput.nextDouble();
-					int corId = base.getID();
-					int id=-1;
-					for (int j = 0; j < 100; j++)
-					{
-						if (index[0][j] == 0)
-						{
-							id = j+1;
-							index[0][j] = j+1;
-							break;
-						}
-					}
-					Distribution corList = TopPercentBinaryCorrelation(id, name, topPercent, corPercent, norPercent, base);
-					
-					for(int j = 0; j <100; j++)
-					{
-						if(index[j][corId-1] == 0)
-						{
-							index[j][corId-1] = id;
-							break;
-						}
-					}
-					
-					WritableWorkbook workbook = Workbook.createWorkbook(new File("SimpleBinaryCorrelation.xls"));
-					WritableSheet sheet = workbook.createSheet("Correlation", 0);
-					for (int j = 0; j < size; j++)
-					{
-						double baseVal = base.getData(j);
-						double corVal = corList.getData(j);
-						Number number1 = new Number(0, j, baseVal);
-						Number number2 = new Number(1, j, corVal);
-						sheet.addCell(number1);
-						sheet.addCell(number2);
-					}
-					/*
-					for(double i : bin)
-					{
-						Number number = new Number(0, j, i); 
-						Number number2 = new Number(1, j, corList.get(j));
-						sheet.addCell(number);
-						sheet.addCell(number2);
-						j++;
-					}
-					*/
-					workbook.write(); 
-					workbook.close();
-					distributions.add(corList);
-					break;
-				}
-				
-				case 4:
-				{
-					System.out.println("Choose a distribution");
-					int i = 0;
-					for (Distribution d : distributions)
-					{
-						System.out.println(i+1 + ". " + d.getName());
-						i++;
-					}
-					int sel = userInput.nextInt();
-					Distribution base = distributions.get(sel-1);
-					System.out.println("Now enter the name, top percentage, top mean, top SD, normal mean, normal SD");
-					String name = userInput.next();
-					double topPercent = userInput.nextDouble();
-					double topMean = userInput.nextDouble();
-					double topSD = userInput.nextDouble();
-					double norMean = userInput.nextDouble();
-					double norSD = userInput.nextDouble();
-					int corId = base.getID();
-					int id=-1;
-					for (int j = 0; j < 100; j++)
-					{
-						if (index[0][j] == 0)
-						{
-							id = j+1;
-							index[0][j] = j+1;
-							break;
-						}
-					}
-					
-					Distribution corList = TopPercentNumericalCorrelation(id, name, topPercent, topMean, topSD, norMean, norSD, base);
-					for(int j = 0; j <100; j++)
-					{
-						if(index[j][corId-1] == 0)
-						{
-							index[j][corId-1] = id;
-							break;
-						}
-					}
-					
-					WritableWorkbook workbook = Workbook.createWorkbook(new File("SimpleNumericalCorrelation.xls"));
-					WritableSheet sheet = workbook.createSheet("Correlation", 0);
-					for (int j = 0; j < size; j++)
-					{
-						double baseVal = base.getData(j);
-						double corVal = corList.getData(j);
-						Number number1 = new Number(0, j, baseVal);
-						Number number2 = new Number(1, j, corVal);
-						sheet.addCell(number1);
-						sheet.addCell(number2);
-					}
-					/*
-					for(double i : bin)
-					{
-						Number number = new Number(0, j, i); 
-						Number number2 = new Number(1, j, corList.get(j));
-						sheet.addCell(number);
-						sheet.addCell(number2);
-						j++;
-					}
-					*/
-					workbook.write(); 
-					workbook.close();
-					distributions.add(corList);
-					break;
-				}
-				
-				case 8:
-				{
-					for(int i = 0; i < 100; i++)
-					{
-						if (index[0][i] != 0)
-						{
-							System.out.println(i+1 + ". " + getDistFromID(index[0][i], distributions).getName());
-							for (int j = 1; j < 100; j++)
-							{
-								if (index [j][i] != 0)
-									System.out.println("--- " + getDistFromID(index[j][i], distributions).getName());
-								else break;
-							}
-							
-						}
-						else 
-							break;
-					}
-					System.out.println("\n");
-					break;
-				}
-				case 9:
-				{
-					int i = 0;
-					WritableWorkbook workbook = Workbook.createWorkbook(new File("RandomData.xls"));
-					WritableSheet sheet = workbook.createSheet("Sheet1", 0);
-					for (Distribution d : distributions)
-					{
-						for (int j = 0; j<size; j++)
-						{
-							double val = d.getData(j);
-							Number number = new Number(i, j, val);
-							sheet.addCell(number);
-						}
-						i++;
-					}
-					workbook.write();
-					workbook.close();
-					break;
-				}
-			}
-		}
-		userInput.close();
+			      //STEP 6: Clean-up environment
+			      rs.close();
+			      stmt.close();
+			      conn.close();
+			   }catch(SQLException se){
+			      //Handle errors for JDBC
+			      se.printStackTrace();
+			   }catch(Exception e){
+			      //Handle errors for Class.forName
+			      e.printStackTrace();
+			   }finally{
+			      //finally block used to close resources
+			      try{
+			         if(stmt!=null)
+			            stmt.close();
+			      }catch(SQLException se2){
+			      }// nothing we can do
+			      try{
+			         if(conn!=null)
+			            conn.close();
+			      }catch(SQLException se){
+			         se.printStackTrace();
+			      }//end finally try
+			   }//end try
+		   System.out.println("Done.");
+		
 	}
 	
 	private static Distribution getDistFromID(int ID, ArrayList<Distribution> dists)

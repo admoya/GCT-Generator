@@ -17,6 +17,7 @@ public class Generator {
 
 	public static void main(String[] args) throws BiffException, IOException, RowsExceededException, WriteException, SQLException {
 		ArrayList<Distribution> distributions = new ArrayList<Distribution>();
+		int size = 0;
 		//Reading Header Table and saving parameters
 		 // JDBC driver name and database URL
 		   String JDBC_DRIVER = "com.mysql.jdbc.Driver";  
@@ -48,7 +49,7 @@ public class Generator {
 			         int id  = rs.getInt("Dist_ID");
 			         String name = rs.getString("Name");
 			         String distType = rs.getString("Dist_Type");
-			         int size = rs.getInt("Size");
+			         size = rs.getInt("Size");
 			         int corID = rs.getInt("Cor_ID");
 			         double mean = rs.getDouble("Mean");
 			         double sd = rs.getDouble("Std_Dev");
@@ -97,6 +98,7 @@ public class Generator {
 			         }
 			      }
 			      //Populate detail table
+			      /* Old Method
 			      for (Distribution d : distributions)
 					{
 						for(Data data : d.getValues())
@@ -109,7 +111,25 @@ public class Generator {
 					      preparedStmt.execute();
 						}
 					      
-					}
+					}*/
+			      for (int i = 0; i < size; i++)
+			      {
+			    	  String query = "Insert into athlete (Athlete_ID, Dist_1, Dist_2, Dist_3, Dist_4, Dist_5, Dist_6, Dist_7, Dist_8, Dist_9, Dist_10)" + " values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			    	  PreparedStatement preparedStmt = conn.prepareStatement(query);
+			    	  preparedStmt.setInt(1, i);
+			    	  int j;
+			    	  for (j = 0; j < distributions.size(); j++)
+			    	  {
+			    		  double value = distributions.get(j).getData(i);
+			    		  preparedStmt.setDouble(j+2, value);
+			    	  }
+			    	  for (int k = j + 2; k < 12; k++)
+			    	  {
+			    		  preparedStmt.setNull(k, java.sql.Types.DOUBLE);
+			    	  }
+			    	  preparedStmt.execute();
+			      }
+			      
 			      //STEP 6: Clean-up environment
 			      rs.close();
 			      stmt.close();

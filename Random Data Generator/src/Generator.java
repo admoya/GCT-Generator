@@ -112,6 +112,11 @@ public class Generator {
 						}
 					      
 					}*/
+			      
+			      //Clear Athlete Table
+			      String clear = "TRUNCATE athlete";
+			      PreparedStatement truncate = conn.prepareStatement(clear);
+			      truncate.execute();
 			      for (int i = 0; i < size; i++)
 			      {
 			    	  String query = "Insert into athlete (Athlete_ID, Dist_1, Dist_2, Dist_3, Dist_4, Dist_5, Dist_6, Dist_7, Dist_8, Dist_9, Dist_10)" + " values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";

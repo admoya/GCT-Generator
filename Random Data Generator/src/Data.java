@@ -1,4 +1,7 @@
-
+/*
+ * Data class will be used to store randomly generated data
+ * Each object has an non-unique ID, so different sets of Data can correspond to the same person
+ */
 public class Data {
 public int ID;
 public double value;

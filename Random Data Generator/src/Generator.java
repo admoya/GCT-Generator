@@ -1,15 +1,13 @@
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Random;
-import java.util.Scanner;
-import java.io.File; 
-import java.io.IOException;
-import java.util.Date; 
+/*
+ * Generator class will do the work. 
+ * Read from header table, generate data, write to detail table.
+ */
 
+import java.util.ArrayList;
+import java.util.Random;
+import java.io.IOException;
 import jxl.write.*;
-import jxl.write.Number;
 import jxl.write.biff.RowsExceededException;
-import jxl.*;
 import jxl.read.biff.BiffException;
 
 import java.sql.*;
@@ -29,21 +27,21 @@ public class Generator {
 		   Connection conn = null;
 		   Statement stmt = null;
 		   try{
-			      //STEP 2: Register JDBC driver
-			      Class.forName("com.mysql.jdbc.Driver");
+			      //STEP 1: Register JDBC driver
+			      Class.forName(JDBC_DRIVER);
 
-			      //STEP 3: Open a connection
+			      //STEP 2: Open a connection
 			      System.out.println("Connecting to database...");
 			      conn = DriverManager.getConnection(DB_URL,USER,PASS);
 			      
-			      //STEP 4: Execute a query
+			      //STEP 3: Execute a query
 			      System.out.println("Creating statement...");
 			      stmt = conn.createStatement();
 			      String sql;
 			      sql = "SELECT * FROM import_data_header";
 			      ResultSet rs = stmt.executeQuery(sql);
 
-			      //STEP 5: Extract data from result set
+			      //STEP 4: Extract data from result set
 			      while(rs.next()){
 			         //Retrieve by column name
 			         int id  = rs.getInt("Dist_ID");
@@ -81,7 +79,7 @@ public class Generator {
 			         System.out.print(", normMean: " + normMean);
 			         System.out.println(", normSD: " + normSD);
 			         
-			         switch(distType)
+			         switch(distType) //Determine the distribution and generate data accordingly
 			         {
 			         case ("Normal"):
 			        	 distributions.add(newBinaryDistribution(id, size, name, mean, sd));
@@ -117,6 +115,8 @@ public class Generator {
 			      String clear = "TRUNCATE athlete";
 			      PreparedStatement truncate = conn.prepareStatement(clear);
 			      truncate.execute();
+			      
+			      //Populate athlete table
 			      for (int i = 0; i < size; i++)
 			      {
 			    	  String query = "Insert into athlete (Athlete_ID, Dist_1, Dist_2, Dist_3, Dist_4, Dist_5, Dist_6, Dist_7, Dist_8, Dist_9, Dist_10)" + " values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -163,14 +163,17 @@ public class Generator {
 		
 	}
 	
-	private static Distribution getDistFromID(int ID, ArrayList<Distribution> dists)
+	/* ************************************** Generator Methods ******************************* */
+	
+	private static Distribution getDistFromID(int ID, ArrayList<Distribution> dists) //Search for a particular distribution
 	{
 		for (Distribution d : dists)
 			if (d.getID() == ID)
 				return d;
 		return null;
 	}
-	 private static Distribution newBinaryDistribution(int ID, int size, String name, double mean, double sd)
+	
+	 private static Distribution newBinaryDistribution(int ID, int size, String name, double mean, double sd)//Create a new normal distribution
 	{
 		Distribution retVal = new Distribution(ID, name, "Normal", size, mean, sd);
 		//ArrayList<Double> retList = new ArrayList<Double>();
@@ -183,7 +186,7 @@ public class Generator {
 		return retVal;
 	}
 
-	 private static Distribution TopPercentBinaryCorrelation(int ID, String name, double topPercent, double corPercent, double normPercent, Distribution inData)
+	 private static Distribution TopPercentBinaryCorrelation(int ID, String name, double topPercent, double corPercent, double normPercent, Distribution inData)//Create a correlated binary (as in 1/0, not statistically normal) distribution
 	 {
 		 Distribution retVal = new Distribution(ID, name, "BCor", inData.getSize(), topPercent, corPercent, normPercent);
 		 //ArrayList<Integer> retList = new ArrayList<Integer>();
@@ -213,7 +216,7 @@ public class Generator {
 		 return retVal;
 	 }
 	 
-	 private static Distribution TopPercentNumericalCorrelation (int ID, String name, double topPercent, double topMean, double topSD, double norMean, double norSD, Distribution inData)
+	 private static Distribution TopPercentNumericalCorrelation (int ID, String name, double topPercent, double topMean, double topSD, double norMean, double norSD, Distribution inData)//Create a correlated numerical distribution
 				{
 		 			Distribution retVal = new Distribution(ID, name, "NumCor", inData.getSize(), topPercent, norMean, norSD, topMean, topSD);
 		 			inData.sort();
@@ -237,7 +240,7 @@ public class Generator {
 		 			return retVal;
 				}
 
-	 private static Distribution newBoundedDistribution(int ID, int size, String name, double mean, double sd, double min, double max)
+	 private static Distribution newBoundedDistribution(int ID, int size, String name, double mean, double sd, double min, double max) //Create a bounded normal. Can be used to create skewed distributions
 		{
 			Distribution retVal = new Distribution(ID, name, "Bounded", size, mean, sd);
 			//ArrayList<Double> retList = new ArrayList<Double>();

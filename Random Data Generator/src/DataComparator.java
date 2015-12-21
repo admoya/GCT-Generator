@@ -1,3 +1,4 @@
+//Simple comparator that dictates the Data object is to be compared by it's value, not it's ID
 import java.util.Comparator;
 
 public class DataComparator implements Comparator<Data>{

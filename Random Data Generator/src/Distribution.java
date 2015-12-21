@@ -1,3 +1,7 @@
+/*
+ * Distribution object to represent a set of data
+ * Will contain information on which kind of distribution it is, and appropriate parameters as needed
+ */
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -82,6 +86,8 @@ public class Distribution
 		min = 0;
 		max = 0;
 	}
+	
+	/* *********************Getters and Setters ******************** */
 	
 	public int getID() {
 		return ID;

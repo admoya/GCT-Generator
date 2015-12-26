@@ -8,7 +8,46 @@ import java.util.Collections;
 public class Distribution 
 {
 	private int size, ID;
-	private double mean, SD, topPercent, corPercent, norPercent, norMean, norSD, topMean, topSD, min, max;
+	private double mean, SD, topPercent, corPercent, norPercent, norMean, norSD, topMean, topSD, min, max, falseChance, falseVal, trueChance, trueMean, trueSD;
+	public double getFalseChance() {
+		return falseChance;
+	}
+
+	public void setFalseChance(double falseChance) {
+		this.falseChance = falseChance;
+	}
+
+	public double getFalseVal() {
+		return falseVal;
+	}
+
+	public void setFalseVal(double falseVal) {
+		this.falseVal = falseVal;
+	}
+
+	public double getTrueChance() {
+		return trueChance;
+	}
+
+	public void setTrueChance(double trueChance) {
+		this.trueChance = trueChance;
+	}
+
+	public double getTrueMean() {
+		return trueMean;
+	}
+
+	public void setTrueMean(double trueMean) {
+		this.trueMean = trueMean;
+	}
+
+	public double getTrueSD() {
+		return trueSD;
+	}
+
+	public void setTrueSD(double trueSD) {
+		this.trueSD = trueSD;
+	}
 	private String type, name;
 	private ArrayList<Data> values = new ArrayList<Data>();
 	public Distribution (int ID, String name, String type, int size, double mean, double SD)//Normal Distributions
@@ -19,15 +58,6 @@ public class Distribution
 		this.size = size;
 		this.mean = mean;
 		this.SD = SD;
-		topPercent = 0;
-		corPercent = 0;
-		norPercent = 0;
-		norMean = 0;
-		norSD = 0;
-		topMean = 0;
-		topSD = 0;
-		min = 0;
-		max = 0;
 	}
 	
 	public Distribution (int ID, String name, String type, int size, double mean, double SD, double min, double max)//Bounded Distributions
@@ -40,13 +70,6 @@ public class Distribution
 		this.SD = SD;
 		this.min = min;
 		this.max = max;
-		topPercent = 0;
-		corPercent = 0;
-		norPercent = 0;
-		norMean = 0;
-		norSD = 0;
-		topMean = 0;
-		topSD = 0;
 	}
 	
 	public Distribution (int ID, String name, String type, int size, double topPercent, double corPercent, double norPercent)//Binary Correlation
@@ -55,17 +78,9 @@ public class Distribution
 		this.name = name;
 		this.type = type;
 		this.size = size;
-		this.mean = 0;
-		this.SD = 0;
 		this.topPercent = topPercent;
 		this.corPercent = corPercent;
 		this.norPercent = norPercent;
-		norMean = 0;
-		norSD = 0;
-		topMean = 0;
-		topSD = 0;
-		min = 0;
-		max = 0;
 	}
 	
 	public Distribution (int ID, String name, String type, int size, double topPercent, double norMean, double norSD, double topMean, double topSD)//Numerical Correlation
@@ -74,8 +89,6 @@ public class Distribution
 		this.name = name;
 		this.type = type;
 		this.size = size;
-		this.mean = 0;
-		this.SD = 0;
 		this.topPercent = topPercent;
 		this.corPercent = 0;
 		this.norPercent = 0;
@@ -83,8 +96,19 @@ public class Distribution
 		this.norSD = norSD;
 		this.topMean = topMean;
 		this.topSD = topSD;
-		min = 0;
-		max = 0;
+	}
+	
+	public Distribution (int ID, int size, String name, String type, double falseChance, double falseVal, double trueChance, double trueMean, double trueSD)//Dynamic Binary Correlation
+	{
+		this.ID = ID;
+		this.name = name;
+		this.type = type;
+		this.size = size;
+		this.falseChance = falseChance;
+		this.falseVal = falseVal;
+		this.trueChance = trueChance;
+		this.trueMean = trueMean;
+		this.trueSD = trueSD;
 	}
 	
 	/* *********************Getters and Setters ******************** */

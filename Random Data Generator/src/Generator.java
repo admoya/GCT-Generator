@@ -22,7 +22,7 @@ public class Generator {
 		   String DB_URL = "jdbc:mysql://localhost/gct";
 		//  Database credentials
 		   String USER = "root";
-		   String PASS = "gerby1";
+		   String PASS = "root";
 		   
 		   Connection conn = null;
 		   Statement stmt = null;
@@ -60,6 +60,11 @@ public class Generator {
 			         double topSD = rs.getDouble("Top_Std_Dev");
 			         double normMean = rs.getDouble("Norm_Mean");
 			         double normSD = rs.getDouble("Norm_Std_Dev");
+			         double falseChance = rs.getDouble("False_Chance");
+			         double falseVal = rs.getDouble("False_Value");
+			         double trueChance = rs.getDouble("True_Chance");
+			         double trueMean = rs.getDouble("True_Mean");
+			         double trueSD = rs.getDouble("True_Std_Dev");
 
 			         //Display values
 			         System.out.print("ID: " + id);
@@ -77,7 +82,12 @@ public class Generator {
 			         System.out.print(", TopMean: " + topMean);
 			         System.out.print(", TopSD: " + topSD);
 			         System.out.print(", normMean: " + normMean);
-			         System.out.println(", normSD: " + normSD);
+			         System.out.print(", normSD: " + normSD);
+			         System.out.print(", falseChance: " + falseChance);
+			         System.out.print(", falseVal: " + falseVal);
+			         System.out.print(", trueChance: " + trueChance);
+			         System.out.print(", trueMean: " + trueMean);
+			         System.out.println(", trueSD: " + trueSD);
 			         
 			         switch(distType) //Determine the distribution and generate data accordingly
 			         {
@@ -92,6 +102,9 @@ public class Generator {
 			         	break;
 			         case ("Bounded"):
 			        	 distributions.add(newBoundedDistribution(id, size, name, normMean, normSD, min, max));
+			         	break;
+			         case ("Dynamic"):
+			        	 distributions.add(newDynamicBinaryCorrelation(id, name, falseChance, falseVal, trueChance, trueMean, trueSD, getDistFromID(corID, distributions)));
 			         	break;
 			         }
 			      }
@@ -257,6 +270,38 @@ public class Generator {
 			
 			return retVal;
 		}
+	 
+	 private static Distribution newDynamicBinaryCorrelation(int ID, String name, double falseChance, double falseVal, double trueChance, double trueMean, double trueSD, Distribution inData)
+	 {
+		 Distribution retVal = new Distribution(ID, inData.getSize(), name, "Dynamic", falseChance, falseVal, trueChance, trueMean, trueSD);
+		 Random generator = new Random();
+		 for (Data d : inData.getValues()){
+			 if (d.value == 0)//This row is false
+			 {
+				if(generator.nextDouble() <= falseChance){ //We have a hit
+					double tmpValue = generator.nextGaussian()*inData.getTopSD()+inData.getTopMean(); //Generate a new value with same values as other distribution
+					retVal.addData(d.ID, tmpValue);
+				}
+				else
+					retVal.addData(d.ID, falseVal);
+			 }
+			 else{ //This row is true
+				 if(generator.nextDouble() <= falseChance){ //We have a hit
+						double tmpValue = generator.nextGaussian()*inData.getSD()+inData.getMean(); //Generate a new value with same values as other distribution
+						retVal.addData(d.ID, tmpValue);
+					}
+				 else if (generator.nextDouble() <= trueChance){ // We have a hit
+					 double offset = generator.nextGaussian()*trueSD+trueMean;
+					 double tmpValue = d.value + offset;
+					 retVal.addData(d.ID, tmpValue);
+				 }
+				 else
+					 retVal.addData(d.ID, falseVal); 
+			 }
+		 }
+		 
+		 return retVal;
+	 }
 }
 
 	
